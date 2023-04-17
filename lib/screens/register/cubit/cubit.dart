@@ -31,15 +31,16 @@ class PaymentCubit extends Cubit<PaymentStates> {
     DioHelper.postData(endPoint: "ecommerce/orders", data: {
       "auth_token": AUTH_TOKEN,
       "delivery_needed": "false",
-      "amount_cents": "10000",
+      "amount_cents": amount * 100,
       "currency": "EGP",
       "items": []
     }).then((value) {
-      ORDER_ID = value.data["id"];
+      ORDER_ID = value.data["id"].toString();
       getRequestCardToken(email, fName, lName, amount, phone);
       getRequestKioskToken(email, fName, lName, amount, phone);
       emit(SuccessOrderIDPaymentState());
     }).catchError((error) {
+      print(error);
       emit(ErrorOrderIDPaymentState());
     });
   }
@@ -49,7 +50,7 @@ class PaymentCubit extends Cubit<PaymentStates> {
     emit(LoadingRequestTokenCardPaymentState());
     DioHelper.postData(endPoint: "acceptance/payment_keys", data: {
       "auth_token": AUTH_TOKEN,
-      "amount_cents": "10000",
+      "amount_cents": amount * 100,
       "expiration": 3600,
       "order_id": ORDER_ID,
       "billing_data": {
@@ -83,7 +84,7 @@ class PaymentCubit extends Cubit<PaymentStates> {
     emit(LoadingRequestTokenKioskPaymentState());
     DioHelper.postData(endPoint: "acceptance/payment_keys", data: {
       "auth_token": AUTH_TOKEN,
-      "amount_cents": "10000",
+      "amount_cents": amount * 100,
       "expiration": 3600,
       "order_id": ORDER_ID,
       "billing_data": {
@@ -106,9 +107,26 @@ class PaymentCubit extends Cubit<PaymentStates> {
       "lock_order_when_paid": "false"
     }).then((value) {
       REQUEST_TOKEN_KIOSK = value.data["token"];
+      getRefCode();
       emit(SuccessRequestTokenKioskPaymentState());
     }).catchError((error) {
       emit(ErrorRequestTokenKioskPaymentState());
+    });
+  }
+
+  void getRefCode() {
+    emit(LoadingReferenceCodePaymentState());
+    DioHelper.postData(endPoint: 'acceptance/payments/pay', data: {
+      "source": {"identifier": "AGGREGATOR", "subtype": "AGGREGATOR"},
+      "payment_token": REQUEST_TOKEN_KIOSK
+
+      /// from constants
+    }).then((value) {
+      /// we wont to take the token only
+      REF_CODE = value.data["id"].toString();
+      emit(SuccessReferenceCodePaymentState());
+    }).onError((error, stackTrace) {
+      emit(ErrorReferenceCodePaymentState());
     });
   }
 }

@@ -7,14 +7,25 @@ class MyTextFormField extends StatelessWidget {
 
   var myKeyboard = TextInputType.emailAddress;
 
-  MyTextFormField(
-      {required this.myKeyboard,
-      required this.hintText,
-      required this.myController});
+  String validatedMessage = '';
+
+  MyTextFormField({
+    required this.myKeyboard,
+    required this.hintText,
+    required this.myController,
+    required this.validatedMessage,
+  });
 
   @override
   Widget build(BuildContext context) {
     return TextFormField(
+      validator: (text) {
+        if (text == null || text.trim().isEmpty) {
+          return validatedMessage;
+        } else {
+          return null;
+        }
+      },
       keyboardType: myKeyboard,
       controller: myController,
       decoration: InputDecoration(
