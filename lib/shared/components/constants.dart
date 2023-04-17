@@ -10,3 +10,5 @@ double INTEGRATION_KIOSK_ID = 3727458;
 
 String REQUEST_TOKEN_CARD = "";
 String REQUEST_TOKEN_KIOSK = "";
+
+String REF_CODE = '';
